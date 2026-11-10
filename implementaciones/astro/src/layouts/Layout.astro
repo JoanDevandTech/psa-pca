@@ -1,0 +1,92 @@
+---
+/**
+ * Layout mínimo para la PSA: canónica, <title>, meta description y UN solo
+ * bloque JSON-LD con el @graph de la página, servido en el HTML inicial.
+ *
+ * También pinta lo que el grafo publica en todas las páginas (el nombre de la
+ * empresa, las migas y los datos de contacto), porque lo visible manda: el
+ * marcado no puede decir nada que el texto no diga.
+ */
+import { SITIO } from "../sitio.config";
+import { grafo, organizacion, sitio, fundador, pagina, migas as nodoMigas, serializar, type Nodo, type Miga } from "../lib/schema";
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  /**
+   * Tipo de schema.org de la PÁGINA. Servicio o artículo no son tipos de
+   * página: van como nodos propios en `nodos`.
+   */
+  tipo?: "WebPage" | "AboutPage" | "ContactPage" | "CollectionPage";
+  /** Nodos propios de la página (servicio, artículo, FAQ…), creados con src/lib/schema.ts. */
+  nodos?: Nodo[];
+  /** @id del nodo del que trata la página; se publica como `mainEntity` de #page. */
+  entidadPrincipal?: string;
+  /** Migas de la portada a la página actual. El layout las pinta y crea el BreadcrumbList. */
+  migas?: Miga[];
+  /** La página nombra a la persona fundadora en el texto visible: añade Person y `founder`. */
+  conFundador?: boolean;
+}
+
+const { titulo, descripcion, tipo = "WebPage", nodos = [], entidadPrincipal, migas, conFundador = false } = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, SITIO.url).href;
+
+const json = serializar(
+  grafo(
+    organizacion(conFundador),
+    sitio(),
+    conFundador && fundador(),
+    pagina({
+      url: canonical,
+      tipo,
+      nombre: titulo,
+      descripcion,
+      entidadPrincipal,
+      tieneMigas: Boolean(migas?.length),
+    }),
+    migas?.length ? nodoMigas(canonical, migas) : undefined,
+    ...nodos,
+  ),
+);
+---
+
+<!doctype html>
+<html lang={SITIO.idioma}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+    <link rel="canonical" href={canonical} />
+    <script type="application/ld+json" is:inline set:html={json} />
+  </head>
+  <body>
+    <header>
+      <a href="/">{SITIO.nombre}</a>
+    </header>
+    {
+      migas?.length ? (
+        <nav aria-label="Migas de pan">
+          <ol>
+            {migas.map((m) => (
+              <li>
+                <a href={m.url}>{m.name}</a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      ) : null
+    }
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <p>
+        {SITIO.nombre} · {SITIO.areaServida.map((a) => a.nombre).join(", ")}
+        {SITIO.correo && <> · <a href={`mailto:${SITIO.correo}`}>{SITIO.correo}</a></>}
+      </p>
+      <p>Empresa y sitio ficticios: demostración del modelo PCA-PSA.</p>
+    </footer>
+  </body>
+</html>

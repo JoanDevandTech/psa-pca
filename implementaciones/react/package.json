@@ -1,0 +1,16 @@
+{
+  "name": "psa-pca-react",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsx src/generar.tsx",
+    "verificar": "node ../../scripts/verificar-psa.mjs dist/index.html && node ../../scripts/verificar-psa.mjs dist/servicios/integracion-de-apis/index.html && node ../../scripts/verificar-psa.mjs dist/blog/que-es-un-webhook/index.html"
+  },
+  "dependencies": {
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15"
+  }
+}

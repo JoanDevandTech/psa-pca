@@ -1,0 +1,12 @@
+{
+  "name": "psa-pca-astro",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "astro build",
+    "verificar": "node ../../scripts/verificar-psa.mjs dist/index.html && node ../../scripts/verificar-psa.mjs dist/servicios/integracion-de-apis/index.html && node ../../scripts/verificar-psa.mjs dist/blog/que-es-un-webhook/index.html"
+  },
+  "dependencies": {
+    "astro": "7.4.8"
+  }
+}
